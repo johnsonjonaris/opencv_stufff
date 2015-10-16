@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="OpenCVExample">
+</Property><Property Name="Solution File" Value="E:\Programming\C++\openCV\Practical Vision Book OpenCV V2.4.10 Code samples\OpenCVExample\OpenCVExample.sln">
+</Property><Property Name="Date" Value="Saturday, March 21, 2015">
+</Property><Property Name="Time" Value="22:06 PM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="OpenCVExample.sln" Description="File successfully backed up as E:\Programming\C++\openCV\Practical Vision Book OpenCV V2.4.10 Code samples\OpenCVExample\OpenCVExample.sln.old">
+</Event><Event ErrorLevel="2" Project="E:\Programming\C++\openCV\Practical Vision Book OpenCV V2.4.10 Code samples\OpenCVExample\OpenCVExample.vcxproj" Source="OpenCVExample" Description="Cannot load the project due to a corrupt project file.">
+</Event><Event ErrorLevel="2" Project="OpenCVExample" Source="OpenCVExample.vcxproj" Description="Project upgrade failed.">
+</Event><Event ErrorLevel="3" Project="OpenCVExample" Source="OpenCVExample.vcxproj" Description="Not Converted">
+</Event><Event ErrorLevel="0" Project="" Source="OpenCVExample.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="OpenCVExample.sln" Description="Converted">
+</Event></UpgradeLog>
