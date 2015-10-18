@@ -163,3 +163,21 @@ def display_projections(*args):
     # connecting the scroll event of the figure to the scroll callback
     plt.gcf().canvas.mpl_connect('scroll_event', on_scroll)
     plt.show()
+
+def getIntersection(line1, line2):
+    # https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+    l1_p1 = line1[0:2]
+    l1_p2 = line1[2:]
+    l2_p1 = line2[0:2]
+    l2_p2 = line2[2:]
+    # x1y2 - y1x2
+    a = (l1_p1[0]*l1_p2[1] - l1_p1[1]*l1_p2[0])
+    # x3y4 - y3x4
+    b = (l2_p1[0]*l2_p2[1] - l2_p1[1]*l2_p2[0])
+    # (x1 - x2)(y3 - y4) - (y1 - y2)(x3 - x4)
+    c = (l1_p1[0] - l1_p2[0])*(l2_p1[1] - l2_p2[1]) - (l1_p1[1] - l1_p2[1])*(l2_p1[0] - l2_p2[0])
+    if (abs(c) < 1e-12):
+        return None
+    x = (a*(l2_p1[0] - l2_p2[0]) - (l1_p1[0] - l1_p2[0])*b)/c
+    y = (a*(l2_p1[1] - l2_p2[1]) - (l1_p1[1] - l1_p2[1])*b)/c
+    return np.array([x, y], dtype='float64')
