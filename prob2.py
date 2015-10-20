@@ -2,7 +2,7 @@ __author__ = 'Johnson'
 
 import cv2
 import numpy as np
-from utilities import my_imshow, getIntersection
+from utilities import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
@@ -135,7 +135,7 @@ for image in images:
             test2 = False
             # http://stackoverflow.com/questions/99353/how-to-test-if-a-line-segment-intersects-an-axis-aligned-rectange-in-2d
             if test1:
-                test2 = lineIntersectsSquare(line[0], 20, 20, w-20, h-20)
+                test2 = LineIntersectsRect(Line(line[0]), Rectangle(Point(20, 20), width=w-20, height=h-20))
             if test1 and not test2:
                 cv2.line(edge_image, pt1, pt2, color=(255,))
 
@@ -147,5 +147,6 @@ for image in images:
     i += 2
 
 plt.show()
+
 
 
