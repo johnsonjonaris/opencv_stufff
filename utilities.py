@@ -181,3 +181,89 @@ def getIntersection(line1, line2):
     x = (a*(l2_p1[0] - l2_p2[0]) - (l1_p1[0] - l1_p2[0])*b)/c
     y = (a*(l2_p1[1] - l2_p2[1]) - (l1_p1[1] - l1_p2[1])*b)/c
     return np.array([x, y], dtype='float64')
+
+class Point:
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def _init__(self, xy):
+        """
+        :param xy: array of two elements
+        """
+        self.x = xy[0]
+        self.y = xy[1]
+
+class Line:
+
+    def __init__(self, pt1, pt2):
+        """
+        :param pt1: first point in line
+        :param pt2: second point in line
+        """
+        self.pt1 = pt1
+        self.pt2 = pt2
+    def __init__(self, line_array):
+        """
+        :param line_array: array of 4 elements
+        """
+        print line_array
+        self.pt1 = Point(line_array[0:2])
+        self.pt2 = Point(line_array[2:])
+
+class Rectangle:
+    """
+    rectangle class
+    """
+    def __init__(self, corner, width, height):
+        """
+        :param corner: bottom left corner
+        :param width: width
+        :param height: height
+        :return:
+        """
+        self.corner = corner
+        self.width = width
+        self.height = height
+
+    def __init__(self, bottom_left, top_right):
+        """
+        :param bottom_left: bottom left corner
+        :param top_right: top right corner
+        :return:
+        """
+        self.corner = bottom_left
+        self.width = top_right.x - bottom_left.x
+        self.height = top_right.y - bottom_left.y
+
+    def inRect(self, point):
+        print("not implemented yet")
+
+
+def LineIntersectsRect(line, rect):
+
+    return LineIntersectsLine(line, Line(rect.corner,
+                                         Point(rect.corner.x + rect.width, rect.corner.y))) or \
+        LineIntersectsLine(line, Line(Point(rect.corner.x + rect.width, rect.corner.y),
+                                      Point(rect.corner.x + rect.width, rect.corner.y + rect.height))) or \
+        LineIntersectsLine(line, Line(Point(rect.corner.x + rect.width, rect.corner.y + rect.height),
+                                      Point(rect.corner.x, rect.corner.y + rect.height))) or \
+        LineIntersectsLine(line, Line(Point(rect.corner.x, rect.corner.y + rect.height),
+                                      rect.corner))
+
+def LineIntersectsLine(line1, line2):
+    # parametric line to line intersection, does not assume that the
+    # lines can be extended
+    q = (line1.pt1.y - line2.pt1.y)*(line2.pt2.x - line2.pt1.x) - \
+        (line1.pt1.x - line2.pt1.x)*(line2.pt2.y - line2.pt1.y)
+    d = (line1.pt2.x - line1.pt1.x)*(line2.pt2.y - line2.pt1.y) - \
+        (line1.pt2.y - line1.pt1.y)*(line2.pt2.x - line2.pt1.x)
+    if d == 0 :
+        return False
+    r = q / d
+    q = (line1.pt1.y - line2.pt1.y) * (line1.pt2.x - line1.pt1.x) - \
+        (line1.x - line2.pt1.x) * (line1.pt2.y - line1.pt1.y)
+    s = q / d
+    if ( r < 0 or r > 1 or s < 0 or s > 1 ):
+        return False
+    return True
