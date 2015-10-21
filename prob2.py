@@ -153,13 +153,15 @@ for image in images:
 
 plt.show()
 
+if method == 1:
+    quit()
 # another method
 i = 0
 for label in labels:
     print("Processing image # %d" % (i/2+1))
     # analyze label area
     filter_image = cv2.bilateralFilter(label, d=11, sigmaColor=17, sigmaSpace=17)
-    edge_image = cv2.Canny(filter_image, threshold1=5, threshold2=30,
+    edge_image = cv2.Canny(filter_image, threshold1=7, threshold2=30,
                            apertureSize=3, L2gradient=True)
     edge_image[edge_image > 0] = 255
     # test for label existence
@@ -180,7 +182,7 @@ for label in labels:
             approx = cv2.approxPolyDP(contour, 0.02 * peri, closed=True)
             # if our approximated contour has four points, then
             # we can assume that we have found our label
-            correct_label = len(approx) == 4
+            correct_label = len(approx) == 4 #and cv2.contourArea(approx) > cv2.contourArea()
             idx += 1
             if correct_label:
                 cv2.drawContours(edge_image, contours=contours, contourIdx=idx, color=255)
