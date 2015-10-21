@@ -35,6 +35,7 @@ kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
 i = 0
 margin = 20
 labels = []
+method = 2
 for image in images:
     print("Processing image # %d" % (i/2+1))
     # get edges of the image
@@ -85,18 +86,18 @@ for image in images:
     # extract label area from image
     label = image[y1:y2,x1:x2]
     labels.append(label)
+    if method == 2:
+        continue
     # analyze label area
     filter_image = cv2.blur(label, ksize=(3,3))
     edge_image = cv2.Canny(filter_image, threshold1=5, threshold2=30,
                            apertureSize=3, L2gradient=True)
     edge_image[edge_image > 0] = 255
     # test for label existence
-    sum = np.sum(edge_image[20:-20, 20:-20])
+    sum = np.sum(edge_image[margin:-margin, margin:-margin])
     label_exist = not (sum == 0)
     correct_label = label_exist
     if label_exist:
-        # fill the holes as much as possible
-        # cv2.floodFill(edge_image, mask=None, seedPoint=seed, newVal=255)
         # discover the lines in the outer shape of the bottle
         lines = cv2.HoughLinesP(edge_image, rho=1, theta=np.pi/180.0,
                                 threshold=30, minLineLength=30, maxLineGap=100)
@@ -143,6 +144,50 @@ for image in images:
                         len(bottom_right) > 0 and \
                         len(top_left) > 0 and \
                         len(top_right) > 0
+    plt.subplot(3,10,i+1)
+    my_imshow(label, cmap=cm.Greys_r)
+    plt.subplot(3,10,i+2)
+    my_imshow(edge_image, cmap=cm.Greys_r)
+    plt.title("%d - %d" % (label_exist, correct_label))
+    i += 2
+
+plt.show()
+
+# another method
+i = 0
+for label in labels:
+    print("Processing image # %d" % (i/2+1))
+    # analyze label area
+    filter_image = cv2.bilateralFilter(label, d=11, sigmaColor=17, sigmaSpace=17)
+    edge_image = cv2.Canny(filter_image, threshold1=5, threshold2=30,
+                           apertureSize=3, L2gradient=True)
+    edge_image[edge_image > 0] = 255
+    # test for label existence
+    sum = np.sum(edge_image[margin:-margin, margin:-margin])
+    label_exist = not (sum == 0)
+    correct_label = label_exist
+    if label_exist:
+        contours = cv2.findContours(edge_image.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]
+        # edge_image.fill(0)
+        # cv2.drawContours(edge_image, contours, -1, 255, -1)
+        # contours = cv2.findContours(edge_image.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
+        idx = 0
+        edge_image.fill(0)
+        for contour in contours:
+            # approximate the contour
+            peri = cv2.arcLength(contour, closed=True)
+            approx = cv2.approxPolyDP(contour, 0.02 * peri, closed=True)
+            # if our approximated contour has four points, then
+            # we can assume that we have found our label
+            correct_label = len(approx) == 4
+            idx += 1
+            if correct_label:
+                cv2.drawContours(edge_image, contours=contours, contourIdx=idx, color=255)
+                break
+        if not correct_label:
+            cv2.drawContours(edge_image, contours=contours, contourIdx=-1, color=255)
+
     plt.subplot(3,10,i+1)
     my_imshow(label, cmap=cm.Greys_r)
     plt.subplot(3,10,i+2)
