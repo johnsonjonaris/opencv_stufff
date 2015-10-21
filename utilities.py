@@ -164,34 +164,16 @@ def display_projections(*args):
     plt.gcf().canvas.mpl_connect('scroll_event', on_scroll)
     plt.show()
 
-def getIntersection(line1, line2):
-    # https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-    l1_p1 = line1[0:2]
-    l1_p2 = line1[2:]
-    l2_p1 = line2[0:2]
-    l2_p2 = line2[2:]
-    # x1y2 - y1x2
-    a = (l1_p1[0]*l1_p2[1] - l1_p1[1]*l1_p2[0])
-    # x3y4 - y3x4
-    b = (l2_p1[0]*l2_p2[1] - l2_p1[1]*l2_p2[0])
-    # (x1 - x2)(y3 - y4) - (y1 - y2)(x3 - x4)
-    c = (l1_p1[0] - l1_p2[0])*(l2_p1[1] - l2_p2[1]) - (l1_p1[1] - l1_p2[1])*(l2_p1[0] - l2_p2[0])
-    if (abs(c) < 1e-12):
-        return None
-    x = (a*(l2_p1[0] - l2_p2[0]) - (l1_p1[0] - l1_p2[0])*b)/c
-    y = (a*(l2_p1[1] - l2_p2[1]) - (l1_p1[1] - l1_p2[1])*b)/c
-    return np.array([x, y], dtype='float64')
-
 import math
 
 class Point:
 
     def __init__(self, *args):
         """
-        Point(x,y)
+        Usage: Point(x,y)
         :param x: x coordinate
         :param y: y coordinate
-        Point(xy)
+        Usage: Point(xy)
         :param xy: array of two scalars
         """
         nArgs = len(args)
@@ -202,15 +184,23 @@ class Point:
             self.x = float(args[0])
             self.y = float(args[1])
         else:
-            raise ValueError("Constructor accepts two scalars or one array of two elements")
+            raise ValueError("Usage: Point(x,y) or Point(xy)")
 
     def __add__(self, other):
+        """
+        adds two points
+        :return: self + other
+        """
         result = Point(self.x, self.y)
         result.x += other.x
         result.y += other.y
         return result
 
     def __sub__(self, other):
+        """
+        subtracts two points
+        :return: self - other
+        """
         result = Point(self.x, self.y)
         result.x -= other.x
         result.y -= other.y
@@ -218,39 +208,28 @@ class Point:
 
     @property
     def length(self):
+        """
+        :return: norm of the point
+        """
         return math.sqrt(self.x**2 + self.y**2)
 
     def normalize(self):
+        """
+        assume point is a vector and normalize it
+        """
         l = self.length
         self.x /= l
         self.y /= l
 
     @staticmethod
     def dot(pt1, pt2):
+        """
+        :return dot product of the two points
+        """
         return pt1.x*pt2.x + pt1.y*pt2.y
 
     def __str__(self):
         return "Point (%f,%f)" % (self.x, self.y)
-
-class Line:
-
-    def __init__(self, *args):
-        """
-        Line(pt1, pt2)
-        :param pt1: first point in line
-        :param pt2: second point in line
-        Line(line_array)
-        :param line_array: array of 4 elements
-        """
-        nArgs = len(args)
-        if nArgs == 2:
-            self.pt1 = args[0]
-            self.pt2 = args[1]
-        elif nArgs == 1:
-            self.pt1 = Point(args[0][0:2])
-            self.pt2 = Point(args[0][2:])
-        else:
-            raise ValueError("Constructor accepts two Points or one array of 4 elements")
 
 class Rectangle:
     """
@@ -278,43 +257,115 @@ class Rectangle:
         else:
             raise ValueError("Constructor accepts two Points or one point and two scalars (width and height)")
 
-    def inRect(self, point):
-        print("not implemented yet")
+    def contains(self, pt):
+        """
+        test if point in rectangle
+        :param pt: point
+        :return: True if point in rectangle
+        """
+        return pt.x > self.corner.x and \
+               pt.x < self.corner.x + self.width and \
+               pt.y > self.corner.y and \
+               pt.y < self.corner.y + self.height
 
+class Line:
 
-def LineIntersectsRect(line, rect):
+    def __init__(self, *args):
+        """
+        Line(pt1, pt2)
+        :param pt1: first point in line
+        :param pt2: second point in line
+        Line(line_array)
+        :param line_array: array of 4 elements
+        """
+        nArgs = len(args)
+        if nArgs == 2:
+            self.pt1 = args[0]
+            self.pt2 = args[1]
+        elif nArgs == 1:
+            self.pt1 = Point(args[0][0:2])
+            self.pt2 = Point(args[0][2:])
+        else:
+            raise ValueError("Constructor accepts two Points or one array of 4 elements")
 
-    return LineIntersectsLine(line, Line(rect.corner,
-                                         Point(rect.corner.x + rect.width, rect.corner.y))) or \
-        LineIntersectsLine(line, Line(Point(rect.corner.x + rect.width, rect.corner.y),
-                                      Point(rect.corner.x + rect.width, rect.corner.y + rect.height))) or \
-        LineIntersectsLine(line, Line(Point(rect.corner.x + rect.width, rect.corner.y + rect.height),
-                                      Point(rect.corner.x, rect.corner.y + rect.height))) or \
-        LineIntersectsLine(line, Line(Point(rect.corner.x, rect.corner.y + rect.height),
-                                      rect.corner))
+    @staticmethod
+    def LineIntersectsLine(line1, line2):
+        """
+        parametric line to line intersection,
+        does not assume that the lines can be extended
+        :param line1: first line
+        :param line2: second line
+        :return: true if the line intersects each other
+        """
+        q1 = (line1.pt1.y - line2.pt1.y)*(line2.pt2.x - line2.pt1.x) - \
+            (line1.pt1.x - line2.pt1.x)*(line2.pt2.y - line2.pt1.y)
+        d = (line1.pt2.x - line1.pt1.x)*(line2.pt2.y - line2.pt1.y) - \
+            (line1.pt2.y - line1.pt1.y)*(line2.pt2.x - line2.pt1.x)
+        if abs(d) < 1e-12:
+            return False
+        r = q1 / d
+        q2 = (line1.pt1.y - line2.pt1.y) * (line1.pt2.x - line1.pt1.x) - \
+            (line1.pt1.x - line2.pt1.x) * (line1.pt2.y - line1.pt1.y)
+        s = q2 / d
+        if r < 0 or r > 1 or s < 0 or s > 1:
+            return False
+        return True
 
-def LineIntersectsLine(line1, line2):
-    # parametric line to line intersection,
-    # does not assume that the lines can be extended
-    q1 = (line1.pt1.y - line2.pt1.y)*(line2.pt2.x - line2.pt1.x) - \
-        (line1.pt1.x - line2.pt1.x)*(line2.pt2.y - line2.pt1.y)
-    d = (line1.pt2.x - line1.pt1.x)*(line2.pt2.y - line2.pt1.y) - \
-        (line1.pt2.y - line1.pt1.y)*(line2.pt2.x - line2.pt1.x)
-    if d == 0:
-        return False
-    r = q1 / d
-    q2 = (line1.pt1.y - line2.pt1.y) * (line1.pt2.x - line1.pt1.x) - \
-        (line1.pt1.x - line2.pt1.x) * (line1.pt2.y - line1.pt1.y)
-    s = q2 / d
-    if r < 0 or r > 1 or s < 0 or s > 1:
-        return False
-    return True
+    @staticmethod
+    def GetLinesIntersection(line1, line2):
+        """
+        compute the intersection points of two lines
+        assumes the lines can be extended
+        https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+        :param line1: first line
+        :param line2: second line
+        :return: intersection point
+        """
+        # x1y2 - y1x2
+        a = line1.pt1.x*line1.pt2.y - line1.pt1.y*line1.pt2.x
+        # x3y4 - y3x4
+        b = line2.pt1.x*line2.pt2.y - line2.pt1.y*line2.pt2.x
+        # (x1 - x2)(y3 - y4) - (y1 - y2)(x3 - x4)
+        c = (line1.pt1.x - line1.pt2.x)*(line2.pt1.y - line2.pt2.y) - \
+            (line1.pt1.y - line1.pt2.y)*(line2.pt1.x - line2.pt2.x)
+        if (abs(c) < 1e-12):
+            return None
+        x = (a*(line2.pt1.x - line2.pt2.x) - (line1.pt1.x - line1.pt2.x)*b)/c
+        y = (a*(line2.pt1.y - line2.pt2.y) - (line1.pt1.y - line1.pt2.y)*b)/c
+        return Point(x, y)
 
-def AngleBetweenLines(line1, line2):
-    # find angle between two lines in degree
-    v1 = line1.pt1 - line1.pt2
-    v1.normalize()
-    v2 = line2.pt1 - line2.pt2
-    v2.normalize()
-    return math.acos(Point.dot(v1,v2))*180.0/math.pi
+    @staticmethod
+    def AngleBetweenLines(line1, line2):
+        """
+        :param line1: first line
+        :param line2: second line
+        :return: angle between the two lines in degree
+        """
+        v1 = line1.pt1 - line1.pt2
+        v1.normalize()
+        v2 = line2.pt1 - line2.pt2
+        v2.normalize()
+        return math.acos(Point.dot(v1, v2))*180.0/math.pi
 
+    @staticmethod
+    def LineIntersectsRect(line, rect):
+        """
+        test if a line intersects a rectangle
+        :param line: line
+        :param rect: rectangle
+        :return: true if line intersects the rectangle
+        """
+        return Line.LineIntersectsLine(line, Line(rect.corner,
+                                             Point(rect.corner.x + rect.width,
+                                                   rect.corner.y))) or \
+            Line.LineIntersectsLine(line, Line(Point(rect.corner.x + rect.width,
+                                                     rect.corner.y),
+                                          Point(rect.corner.x + rect.width,
+                                                rect.corner.y + rect.height))) or \
+            Line.LineIntersectsLine(line, Line(Point(rect.corner.x + rect.width,
+                                                     rect.corner.y + rect.height),
+                                          Point(rect.corner.x,
+                                                rect.corner.y + rect.height))) or \
+            Line.LineIntersectsLine(line, Line(Point(rect.corner.x,
+                                                     rect.corner.y + rect.height),
+                                          rect.corner))
