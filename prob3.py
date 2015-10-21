@@ -36,49 +36,50 @@ if 0: plot_images()
 # f2 = plt.figure(2)
 i = 1
 proc_images = []
+f1 = plt.figure()
 for image in images:
-    if i > 10:
-        break
-    f1 = plt.figure()
-    (_, contours, hierarchy) = cv2.findContours(image, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)
+    contours = cv2.findContours(image, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)[1]
     # cnts = sorted(contours, key = cv2.contourArea, reverse = True)[:10]
-    j = 1
+    good_contours = []
     for c in contours:
         if len(c) > 10:
+            good_contours.append(c)
             cv2.drawContours(image, contours=c, contourIdx=-1, color=rand_color(), thickness=3)
-        j += 5
-    image = cv2.erode(image, kernel=np.ones([2,2]))
+    print("Found %d contours for image %d" % (len(good_contours), i))
+    image = cv2.erode(image, kernel=np.ones([3,3]))
     # get circles
-    circles = cv2.HoughCircles(image, method=cv2.HOUGH_GRADIENT, dp=1, minDist=20,
-                               param1=100, param2=30)
+    # circles = cv2.HoughCircles(image, method=cv2.HOUGH_GRADIENT, dp=1, minDist=20,
+    #                            param1=100, param2=30)
     # plt.figure(1)
     # plt.subplot(3,3,i)
-    plt.subplot(1,2,1)
-    if circles is None:
-        print "No circles found for %i" % i
-    else:
-        for circle in circles[0,:]:
-            center = tuple(circle[0:2])
-            radius = circle[2]
-            print center, radius
-            cv2.circle(image, center, radius, (255,0,0), 1)
-            cv2.circle(image, center, 0, (255,0,0), 1)
+    # plt.subplot(1,2,1)
+    # if circles is None:
+    #     print "No circles found for %i" % i
+    # else:
+    #     for circle in circles[0,:]:
+    #         center = tuple(circle[0:2])
+    #         radius = circle[2]
+            # print center, radius
+            # cv2.circle(image, center, radius, (255,0,0), 1)
+            # cv2.circle(image, center, 0, (255,0,0), 1)
             # print radius
-            for c in contours:
-                if len(c) > 10:
-                    c = np.squeeze(c, axis=1)
-                    p = c.copy()
-                    for l in (0,1):
-                        p[:,l] -= center[l]
-                        p[:,l] *= p[:,l]
-                    pp = np.sqrt(p[:,0] + p[:,1])
-                    plt.hist(pp)
-                    print np.mean(pp)
+            # for c in contours:
+            #     if len(c) > 10:
+            #         c = np.squeeze(c, axis=1)
+            #         p = c.copy()
+            #         for l in (0,1):
+            #             p[:,l] -= center[l]
+            #             p[:,l] *= p[:,l]
+            #         pp = np.sqrt(p[:,0] + p[:,1])
+                    # plt.hist(pp)
+                    # print np.mean(pp)
                     # print pp
     # plt.figure(2)
-    # plt.subplot(3,3,i)
-    plt.subplot(1,2,2)
+    plt.subplot(3,3,i)
+    # plt.subplot(1,2,2)
     my_imshow(image)
+    if len(good_contours) < 2:
+        plt.title("Broken")
 
     i += 1
 
