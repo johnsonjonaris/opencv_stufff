@@ -369,3 +369,56 @@ class Line:
             Line.LineIntersectsLine(line, Line(Point(rect.corner.x,
                                                      rect.corner.y + rect.height),
                                           rect.corner))
+
+import math
+
+def rotation_matrix(axis, theta):
+    """
+    Return the rotation matrix associated with counterclockwise
+    rotation about the given axis by theta in degree.
+    """
+    theta = float(theta)
+    axis = np.asarray(axis)
+    axis = axis/np.linalg.norm(axis)
+    a = math.cos(math.radians(theta/2))
+    b, c, d = -axis*math.sin(math.radians(theta/2))
+    aa, bb, cc, dd = a*a, b*b, c*c, d*d
+    bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
+    return np.mat([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
+                   [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
+                   [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+
+def rot2anglesExtrinsic(R):
+    phi = math.degrees(math.atan2(R[2,1], R[2,2]))
+    theta = math.degrees(math.asin(-R[2,0]))
+    psi = math.degrees(math.atan2(R[1,0], R[0,0]))
+    return (phi, theta, psi)
+
+def rot2anglesIntrinsic(R):
+    phi = math.degrees(math.atan2(-R[1,2], R[2,2]))
+    theta = math.degrees(math.asin(R[0,2]))
+    psi = math.degrees(math.atan2(-R[0,1], R[0,0]))
+    return (phi, theta, psi)
+
+def rand_color():
+    return np.random.randint(0,255,(1,3))[0]
+
+# x = [1.0,0,0]
+# y = [0,1.0,0]
+# z = [0,0,1.0]
+#
+# alpha = 48
+# beta = 25
+# gamma = 75
+#
+# Rx = rotation_matrix(x, gamma)
+# Ry = rotation_matrix(y, beta)
+# Rz = rotation_matrix(z, alpha)
+#
+# R1 = Rz*Ry*Rx
+# print rot2anglesExtrinsic(R1)
+# print rot2anglesIntrinsic(R1)
+#
+# R1 = Rx*Ry*Rz
+# print rot2anglesExtrinsic(R1)
+# print rot2anglesIntrinsic(R1)
