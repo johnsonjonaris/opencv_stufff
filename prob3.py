@@ -10,18 +10,14 @@ import matplotlib.cm as cm
 dir = "./prob3/"
 files = os.listdir(dir)
 
-def rand_color():
-    return np.random.randint(0,255,(1,3))[0]
-
 images = []
 for file in files:
     filename = os.path.join(dir, file)
     image = cv2.imread(filename)
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    binary_img = cv2.threshold(gray_img, 128, 255, cv2.THRESH_BINARY_INV)[1]
+    binary_img = cv2.threshold(gray_img, 128, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+    binary_img = cv2.erode(binary_img, kernel=np.ones((2,2), 'uint8'), iterations=2)
     images.append(binary_img)
-
-# class1, class2, class3 = images[0:3], images[3:6], images[6:]
 
 def plot_images():
     i = 1
@@ -30,56 +26,53 @@ def plot_images():
         my_imshow(image, cmap=cm.Greys_r)
         i += 1
 
-if 0: plot_images()
-# plt.show()
+if 1:
+    plot_images()
+# create a simple blob feature detector and select filtering by circularity
+params = cv2.SimpleBlobDetector_Params()
+# Change thresholds
+params.minThreshold = 10
+params.maxThreshold = 255
+# Filter by Area.
+params.filterByArea = False
+params.minArea = 150
+# Filter by Circularity
+params.filterByCircularity = True
+params.minCircularity = 0.89
+# Filter by Convexity
+params.filterByConvexity = True
+params.minConvexity = 0.985
+# Filter by Inertia
+params.filterByInertia = False
+params.minInertiaRatio = 0.5
+# Create a detector with the parameters
+detector = cv2.SimpleBlobDetector_create(params)
 
-# f2 = plt.figure(2)
 i = 1
-proc_images = []
 f1 = plt.figure()
 for image in images:
     contours = cv2.findContours(image, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)[1]
-    # cnts = sorted(contours, key = cv2.contourArea, reverse = True)[:10]
-    good_contours = []
-    for c in contours:
-        if len(c) > 10:
-            good_contours.append(c)
-            cv2.drawContours(image, contours=c, contourIdx=-1, color=rand_color(), thickness=3)
-    print("Found %d contours for image %d" % (len(good_contours), i))
-    image = cv2.erode(image, kernel=np.ones([3,3]))
+    # we care about the longest contour
+    contours = sorted(contours, key = cv2.contourArea, reverse = True)
+    image2 = np.zeros_like(image)
+    cv2.drawContours(image2, contours=contours, contourIdx=0, color=(255,), thickness=1)
+    print("Found %d contours for image %d" % (len(contours), i))
+    keypoints = detector.detect(image2)
+    print keypoints
+    image3 = cv2.drawKeypoints((image2), keypoints, np.array([]),
+                               (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     # get circles
     # circles = cv2.HoughCircles(image, method=cv2.HOUGH_GRADIENT, dp=1, minDist=20,
     #                            param1=100, param2=30)
-    # plt.figure(1)
-    # plt.subplot(3,3,i)
-    # plt.subplot(1,2,1)
-    # if circles is None:
-    #     print "No circles found for %i" % i
-    # else:
-    #     for circle in circles[0,:]:
-    #         center = tuple(circle[0:2])
-    #         radius = circle[2]
-            # print center, radius
-            # cv2.circle(image, center, radius, (255,0,0), 1)
-            # cv2.circle(image, center, 0, (255,0,0), 1)
-            # print radius
-            # for c in contours:
-            #     if len(c) > 10:
-            #         c = np.squeeze(c, axis=1)
-            #         p = c.copy()
-            #         for l in (0,1):
-            #             p[:,l] -= center[l]
-            #             p[:,l] *= p[:,l]
-            #         pp = np.sqrt(p[:,0] + p[:,1])
-                    # plt.hist(pp)
-                    # print np.mean(pp)
-                    # print pp
-    # plt.figure(2)
     plt.subplot(3,3,i)
-    # plt.subplot(1,2,2)
-    my_imshow(image)
-    if len(good_contours) < 2:
-        plt.title("Broken")
+    my_imshow(image3)
+    if len(keypoints) == 0:
+        if len(contours) == 1:
+            plt.title("Bad - Broken")
+        else:
+            plt.title("Bad")
+    if len(contours) > 2:
+        plt.title("Bad")
 
     i += 1
 
@@ -97,4 +90,3 @@ plt.show()
 #     plt.subplot(3,3,i+1)
 #     my_imshow(bw_image)
 #     i += 1
-plt.show()
