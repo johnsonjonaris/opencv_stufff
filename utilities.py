@@ -388,37 +388,141 @@ def rotation_matrix(axis, theta):
                    [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                    [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
-def rot2anglesExtrinsic(R):
-    phi = math.degrees(math.atan2(R[2,1], R[2,2]))
-    theta = math.degrees(math.asin(-R[2,0]))
-    psi = math.degrees(math.atan2(R[1,0], R[0,0]))
-    return (phi, theta, psi)
+def rot2anglesExtrinsic(R, order='zyx'):
+    """
+    compute the extrinsic Euler angles according to the provided order
+    ref: https://en.wikipedia.org/wiki/Euler_angles
+    Note that if the order is xyz, then R = Rz(a3)*Ry(a2)*Rx(a1),
+    this is an extrinsic rotation about the x axis with angle a1 followed by a
+    rotation about the y axis with angle a2 followed by a rotation about the z
+    axis with angle a3.
+    :param R: rotation matrix
+    :param order: order of rotation, default is zyx
+    :return: list of Euler angles in order [a1, a2, a3]
+    """
+    if order is 'xyz':
+        """
+        R = Rz(a3)Ry(a2)Rx(a1)
+        """
+        a1 = math.degrees(math.atan2(R[2,1], R[2,2]))
+        a2 = math.degrees(math.asin(-R[2,0]))
+        a3 = math.degrees(math.atan2(R[1,0], R[0,0]))
+    elif order is 'zyx':
+        """
+        R = Rx(a3)Ry(a2)Rz(a1)
+        """
+        a1 = math.degrees(math.atan2(-R[0,1], R[0,0]))
+        a2 = math.degrees(math.asin(R[0,2]))
+        a3 = math.degrees(math.atan2(-R[1,2], R[2,2]))
 
-def rot2anglesIntrinsic(R):
-    phi = math.degrees(math.atan2(-R[1,2], R[2,2]))
-    theta = math.degrees(math.asin(R[0,2]))
-    psi = math.degrees(math.atan2(-R[0,1], R[0,0]))
-    return (phi, theta, psi)
+    elif order is 'yxz':
+        """
+        R = Rz(a3)Rx(a2)Ry(a1)
+        """
+        a1 = math.degrees(math.atan2(-R[2,0], R[2,2]))
+        a2 = math.degrees(math.asin(R[2,1]))
+        a3 = math.degrees(math.atan2(-R[0,1], R[1,1]))
+    elif order is 'zxy':
+        """
+        R = Ry(a3)Rx(a2)Rz(a1)
+        """
+        a1 = math.degrees(math.atan2(R[1,0], R[1,1]))
+        a2 = math.degrees(math.asin(-R[1,2]))
+        a3 = math.degrees(math.atan2(R[0,2], R[2,2]))
+    elif order is 'xzy':
+        """
+        R = Ry(a3)Rz(a2)Rx(a1)
+        """
+        a1 = math.degrees(math.atan2(-R[1,2], R[1,1]))
+        a2 = math.degrees(math.asin(R[1,0]))
+        a3 = math.degrees(math.atan2(-R[2,0], R[0,0]))
+    elif order is 'yzx':
+        """
+        R = Rx(a3)Rz(a2)Ry(a1)
+        """
+        a1 = math.degrees(math.atan2(R[0,2], R[0,0]))
+        a2 = math.degrees(math.asin(-R[0,1]))
+        a3 = math.degrees(math.atan2(R[2,1], R[1,1]))
+    elif order is "xzx":
+        """
+        R = Rx(a3)Rz(a2)Rx(a1)
+        """
+        a1 = math.degrees(math.atan2(R[0,2], -R[0,1]))
+        a2 = math.degrees(math.acos(R[0,0]))
+        a3 = math.degrees(math.atan2(R[2,0], R[1,0]))
+    elif order is "xyx":
+        """
+        R = Rx(a3)Ry(a2)Rx(a1)
+        """
+        a1 = math.degrees(math.atan2(R[0,1], R[0,2]))
+        a2 = math.degrees(math.acos(R[0,0]))
+        a3 = math.degrees(math.atan2(R[1,0], -R[2,0]))
+    elif order is "yzy":
+        """
+        R = Ry(a3)Rz(a2)Ry(a1)
+        """
+        a1 = math.degrees(math.atan2(R[1,2], R[1,0]))
+        a2 = math.degrees(math.acos(R[1,1]))
+        a3 = math.degrees(math.atan2(R[2,1], -R[0,1]))
+    elif order is "yxy":
+        """
+        R = Ry(a3)Rx(a2)Ry(a1)
+        """
+        a1 = math.degrees(math.atan2(R[1,0], -R[1,2]))
+        a2 = math.degrees(math.acos(R[1,1]))
+        a3 = math.degrees(math.atan2(R[0,1], R[2,1]))
+    elif order is "zyz":
+        """
+        R = Rz(a3)Ry(a2)Rz(a1)
+        """
+        a1 = math.degrees(math.atan2(R[2,1], -R[2,0]))
+        a2 = math.degrees(math.acos(R[2,2]))
+        a3 = math.degrees(math.atan2(R[1,2], R[0,2]))
+    elif order is 'zxz':
+        """
+        R = Rz(a3)Rx(a2)Rz(a1)
+        """
+        a1 = math.degrees(math.atan2(R[2,0], R[2,1]))
+        a2 = math.degrees(math.acos(R[2,2]))
+        a3 = math.degrees(math.atan2(R[0,2], -R[1,2]))
+    return [a1, a2, a3]
+
+def test_rot2anglesExtrinsic():
+    x = [1.0,0,0]
+    y = [0,1.0,0]
+    z = [0,0,1.0]
+
+    alpha = 48.0
+    beta = 10.0
+    gamma = 75.0
+
+    Rx = rotation_matrix(x, alpha)
+    Ry = rotation_matrix(y, beta)
+    Rz = rotation_matrix(z, gamma)
+
+    np.set_printoptions(precision=4, suppress=True)
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Rx*Ry*Rz,'zyx'))
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Rz*Ry*Rx,'xyz'))
+
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Rz*Rx*Ry,'yxz'))
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Ry*Rx*Rz,'zxy'))
+
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Rx*Rz*Ry,'yzx'))
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Ry*Rz*Rx,'xzy'))
+
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Rz*Rx*Rz,'zxz'))
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Rx*Rz*Rx,'xzx'))
+
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Ry*Rx*Ry,'yxy'))
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Rx*Ry*Rx,'xyx'))
+
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Rz*Ry*Rz,'zyz'))
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(Ry*Rz*Ry,'yzy'))
+
+def rot2anglesIntrinsic(R, order='zyx'):
+    return rot2anglesExtrinsic(R, order)[::-1]
+
 
 def rand_color():
     return np.random.randint(0,255,(1,3))[0]
 
-# x = [1.0,0,0]
-# y = [0,1.0,0]
-# z = [0,0,1.0]
-#
-# alpha = 48
-# beta = 25
-# gamma = 75
-#
-# Rx = rotation_matrix(x, gamma)
-# Ry = rotation_matrix(y, beta)
-# Rz = rotation_matrix(z, alpha)
-#
-# R1 = Rz*Ry*Rx
-# print rot2anglesExtrinsic(R1)
-# print rot2anglesIntrinsic(R1)
-#
-# R1 = Rx*Ry*Rz
-# print rot2anglesExtrinsic(R1)
-# print rot2anglesIntrinsic(R1)
