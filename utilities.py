@@ -551,3 +551,30 @@ def euler231ToQuat(theta, phi, psi):
     y =s1*c2*c3 + c1*s2*s3
     z =c1*s2*c3 - s1*c2*s3
     return (w, x, y, z)
+
+def gimbal_lock_example():
+    """
+    testing gimbal lock in Z-X-Z rotation convention
+    https://sundaram.wordpress.com/2013/03/08/mathematical-reason-behind-gimbal-lock-in-euler-angles/
+    """
+    x = [1.0,0,0]
+    y = [0,1.0,0]
+    z = [0,0,1.0]
+
+    alpha = 48.0
+    beta = 0.0
+    gamma = 75.0
+    print "rotation angles of (alpha = %.2f, beta = %.2f, gamma = %.2f) in " \
+          "Z-X-Z convention" % (alpha, beta, gamma)
+    Rz1 = rotation_matrix(z, alpha)
+    Rx = rotation_matrix(x, beta)
+    Rz2 = rotation_matrix(z, gamma)
+
+    np.set_printoptions(precision=4, suppress=True)
+    R1 = Rz2*Rx*Rz1
+    print R1
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(R1))
+    print ""
+    R1 = Rz1*Rx*Rz2
+    print R1
+    print "extrinsic rotation: " + str(rot2anglesExtrinsic(R1))
