@@ -526,3 +526,28 @@ def rot2anglesIntrinsic(R, order='zyx'):
 def rand_color():
     return np.random.randint(0,255,(1,3))[0]
 
+def euler231ToQuat(theta, phi, psi):
+    """
+    convention: http://www.euclideanspace.com/maths/standards/index.htm
+    :param theta: Heading applied first (rotation about y axis which is up-down)
+    :param phi: Attitude applied second (rotation about z axis which is along wing)
+    :param psi: Bank applied last (rotation about x axis which is front-back)
+    :return: quaternion (w, x, y, z)
+    """
+    # Assuming the angles are in degrees
+    heading = math.radians(float(theta))
+    attitude = math.radians(float(phi))
+    bank = math.radians(float(psi))
+    c1 = math.cos(heading/2)
+    s1 = math.sin(heading/2)
+    c2 = math.cos(attitude/2)
+    s2 = math.sin(attitude/2)
+    c3 = math.cos(bank/2)
+    s3 = math.sin(bank/2)
+    c1c2 = c1*c2
+    s1s2 = s1*s2
+    w =c1c2*c3 - s1s2*s3
+    x =c1c2*s3 + s1s2*c3
+    y =s1*c2*c3 + c1*s2*s3
+    z =c1*s2*c3 - s1*c2*s3
+    return (w, x, y, z)
